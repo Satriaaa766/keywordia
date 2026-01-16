@@ -55,6 +55,9 @@ jobs:
         with:
           command: plan
           api-token: ${{ secrets.DEPLOYAJA_TOKEN }}
+          additional-args: |
+            --set container.image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            --set replicas=1
 
       - name: DeployAja Deploy
         uses: deployaja/deployaja-cli@v0.0.10
@@ -63,7 +66,7 @@ jobs:
           api-token: ${{ secrets.DEPLOYAJA_TOKEN }}
           additional-args: |
             --set container.image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-            --set replicas=3
+            --set replicas=1
 
       - name: DeployAja Status
         uses: deployaja/deployaja-cli@v0.0.10
