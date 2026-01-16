@@ -1,18 +1,5 @@
 name: keywordia
-version: 1.0.0
-description: Keywordia application
-
+replicas: 1            # Jumlah instance
 container:
-  image: keywordia:latest
-  port: 3000
-
-resources:
-  cpu: 500m
-  memory: 512Mi
-
-replicas: 1
-
-env:
-  - name: NODE_ENV
-    value: production
+  image: ghcr.io/satriaaa766/keywordia/keywordia:latest
 

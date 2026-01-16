@@ -55,13 +55,14 @@ jobs:
         with:
           command: plan
           api-token: ${{ secrets.DEPLOYAJA_TOKEN }}
+          config-file: deployaja.yaml
 
       - name: DeployAja Deploy
         uses: deployaja/deployaja-cli@v0.0.10
         with:
           command: deploy
           api-token: ${{ secrets.DEPLOYAJA_TOKEN }}
-          additional-args: --set container.image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          config-file: deployaja.yaml
 
       - name: DeployAja Status
         uses: deployaja/deployaja-cli@v0.0.10
