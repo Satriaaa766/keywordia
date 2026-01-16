@@ -7,7 +7,7 @@ export const mindMap = writable({
 });
 
 export const isReadOnly = writable(false);
-export const layout = writable('top-down'); // 'top-down' or 'left-to-right'
+export const layout = writable('left-to-right'); // 'top-down' or 'left-to-right'
 export const focusedNodeId = writable(null); // Track node to auto-focus
 
 // Theme based on OS preference
@@ -58,6 +58,39 @@ const addChildRecursive = (node, parentId, newChild) => {
     return node;
 };
 
+// Helper to delete a node
+const deleteNodeRecursive = (node, id) => {
+    if (node.children) {
+        return {
+            ...node,
+            children: node.children
+                .filter(child => child.id !== id)
+                .map(child => deleteNodeRecursive(child, id))
+        };
+    }
+    return node;
+};
+
+// Helper to add sibling
+const addSiblingRecursive = (node, childId, newSibling) => {
+    if (node.children) {
+        const index = node.children.findIndex(c => c.id === childId);
+        if (index !== -1) {
+            const newChildren = [...node.children];
+            newChildren.splice(index + 1, 0, newSibling);
+            return {
+                ...node,
+                children: newChildren
+            };
+        }
+        return {
+            ...node,
+            children: node.children.map(child => addSiblingRecursive(child, childId, newSibling))
+        };
+    }
+    return node;
+};
+
 export const updateNodeText = (id, text) => {
     mindMap.update(tree => updateNodeRecursive(tree, id, n => ({ ...n, text })));
 };
@@ -67,6 +100,19 @@ export const addChild = (parentId) => {
     const newChild = { id, text: 'New Node', children: [] };
     mindMap.update(tree => addChildRecursive(tree, parentId, newChild));
     focusedNodeId.set(id); // Set focus to the new node
+};
+
+export const deleteNode = (id) => {
+    if (id === 'root') return; // Cannot delete root
+    mindMap.update(tree => deleteNodeRecursive(tree, id));
+};
+
+export const addSibling = (siblingId) => {
+    if (siblingId === 'root') return; // Root has no siblings
+    const id = crypto.randomUUID();
+    const newSibling = { id, text: 'New Node', children: [] };
+    mindMap.update(tree => addSiblingRecursive(tree, siblingId, newSibling));
+    focusedNodeId.set(id);
 };
 
 export const setMap = (data) => {

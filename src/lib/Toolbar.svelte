@@ -1,5 +1,6 @@
 <script>
   import { theme, isReadOnly, mindMap, layout } from "./store";
+  import { toasts } from "./stores/toast";
   import { onMount, onDestroy } from "svelte";
   import { goto } from "$app/navigation";
   import { PUBLIC_GOOGLE_CLIENT_ID } from "$env/static/public";
@@ -8,6 +9,7 @@
   export let user = null;
   export let mapId = null;
   export let canEdit = false;
+  export let isEditable = false;
 
   let showShareModal = false;
   let saveStatus = "Saved"; // 'Saved', 'Unsaved changes', 'Saving...', 'Error'
@@ -15,7 +17,7 @@
   let isInitialLoad = true;
   let saveInterval;
   let lastChangeTime = Date.now();
-  const IDLE_THRESHOLD = 5000; // 5 seconds
+  const IDLE_THRESHOLD = 1000; // 1 second for faster sync
 
   // React to store changes to detect unsaved work
   $: {
@@ -41,12 +43,15 @@
       if (res.ok) {
         hasUnsavedChanges = false;
         saveStatus = "Saved";
+        toasts.add("Map saved successfully", "success");
       } else {
         saveStatus = "Your progress not saved, may network issue";
+        toasts.add("Failed to save map", "error");
       }
     } catch (e) {
       console.error(e);
       saveStatus = "Your progress not saved, may network issue";
+      toasts.add("Network error: Failed to save map", "error");
     }
   }
 
@@ -55,16 +60,28 @@
       method: "POST",
       body: JSON.stringify({ token: response.credential }),
       headers: { "Content-Type": "application/json" },
-    }).then(async (res) => {
-      if (res.ok) {
-        location.reload(); // Simple reload to refresh session
-      }
-    });
+    })
+      .then(async (res) => {
+        if (res.ok) {
+          toasts.add("Logged in successfully", "success");
+          setTimeout(() => location.reload(), 500); // Simple reload to refresh session
+        } else {
+          toasts.add("Login failed", "error");
+        }
+      })
+      .catch((e) => {
+        toasts.add("Login error: " + e.message, "error");
+      });
   }
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    location.href = "/"; // Redirect to home
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      toasts.add("Logged out successfully", "success");
+      setTimeout(() => (location.href = "/"), 500); // Redirect to home
+    } catch (e) {
+      toasts.add("Logout failed", "error");
+    }
   }
 
   onMount(() => {
@@ -139,6 +156,8 @@
 <ShareModal
   isOpen={showShareModal}
   url={typeof window !== "undefined" ? window.location.href : ""}
+  {mapId}
+  {isEditable}
   on:close={() => (showShareModal = false)}
 />
 

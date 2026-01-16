@@ -30,10 +30,21 @@ export async function PUT({ params, request, locals }) {
     const { id } = params;
     const { content, title, isPublic } = await request.json();
 
-    const map = await prisma.mindMap.findUnique({ where: { id } });
+    const map = await prisma.mindMap.findUnique({
+        where: { id },
+        include: { collaborators: true }
+    });
 
-    if (!map || map.ownerId !== locals.user.id) {
-        return json({ error: 'Forbidden' }, { status: 403 });
+    if (!map) {
+        return json({ error: 'Not found' }, { status: 404 });
+    }
+
+    const isOwner = map.ownerId === locals.user.id;
+    const isCollaborator = map.collaborators.some(c => c.id === locals.user.id);
+    const isEditable = map.isEditable;
+
+    if (!isOwner && !isCollaborator && !isEditable) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 403 });
     }
 
     const updatedMap = await prisma.mindMap.update({

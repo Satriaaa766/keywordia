@@ -1,5 +1,6 @@
 <script>
     import Toolbar from "$lib/Toolbar.svelte";
+    import { toasts } from "$lib/stores/toast";
     import { goto } from "$app/navigation";
 
     export let data;
@@ -9,13 +10,19 @@
             alert("Please login to create a map");
             return;
         }
-        const res = await fetch("/api/map", {
-            method: "POST",
-            body: JSON.stringify({ title: "New Mind Map" }),
-        });
-        if (res.ok) {
-            const { map } = await res.json();
-            goto(`/map/${map.id}`);
+        try {
+            const res = await fetch("/api/map", {
+                method: "POST",
+                body: JSON.stringify({ title: "New Mind Map" }),
+            });
+            if (res.ok) {
+                const { map } = await res.json();
+                goto(`/map/${map.id}?focus=root`);
+            } else {
+                toasts.add("Failed to create map", "error");
+            }
+        } catch (e) {
+            toasts.add("Network error: Failed to create map", "error");
         }
     }
 </script>

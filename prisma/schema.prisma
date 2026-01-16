@@ -14,7 +14,8 @@ model User {
   googleId  String    @unique
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  maps      MindMap[]
+  maps      MindMap[]      @relation("Owner")
+  sharedMaps MindMap[]     @relation("Collaborators")
 }
 
 model MindMap {
@@ -22,8 +23,10 @@ model MindMap {
   title     String
   content   Json     @default("{\"id\":\"root\",\"text\":\"Central Topic\",\"children\":[]}") // Storing tree as JSON for simplicity
   isPublic  Boolean  @default(false)
+  isEditable Boolean @default(false) // Publicly editable
   ownerId   String
-  owner     User     @relation(fields: [ownerId], references: [id])
+  owner     User     @relation("Owner", fields: [ownerId], references: [id])
+  collaborators User[] @relation("Collaborators")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

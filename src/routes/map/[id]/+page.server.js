@@ -3,12 +3,17 @@ import { error } from '@sveltejs/kit';
 
 export async function load({ params, locals }) {
     const map = await prisma.mindMap.findUnique({
-        where: { id: params.id }
+        where: { id: params.id },
+        include: { collaborators: true }
     });
 
     if (!map) throw error(404, 'Map not found');
 
-    const isOwner = locals.user && map.ownerId === locals.user.id;
+    const user = locals.user; // Define user here
+    const isOwner = user && map.ownerId === user.id;
+    const isCollaborator = map.collaborators.some(c => c.id === user?.id);
+    const isEditable = map.isEditable;
+    const isReadOnly = !isOwner && !isCollaborator && !isEditable;
 
     // Allow access to everyone with the link (read-only for non-owners)
     // if (!map.isPublic && !isOwner) {
@@ -17,7 +22,7 @@ export async function load({ params, locals }) {
 
     return {
         map,
-        user: locals.user,
-        isReadOnly: !isOwner
+        user,
+        isReadOnly: !isOwner && !isCollaborator
     };
 }
