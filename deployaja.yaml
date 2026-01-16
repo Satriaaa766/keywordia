@@ -6,13 +6,9 @@ container:
   image: ghcr.io/trigger466/keywordia:latest
   port: 3000
   resources:
-    requests:
-      cpu: 1m
-      memory: 128Mi
-    limits:
-      cpu: 500m
-      memory: 512Mi
-  replicas: 1
+    cpu: 500m
+    memory: 512Mi
+  replicas: 1 
   imagePullSecrets:
     - name: ghcr-secret
 
