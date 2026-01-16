@@ -1,5 +1,20 @@
-name: keywordia
-replicas: 1            # Jumlah instance
+name: my-app
+version: 1.0.0
+description: My awesome application
 container:
-  image: ghcr.io/satriaaa766/keywordia/keywordia:latest
+  image: my-app:latest
+  port: 3000
+resources:
+  cpu: 500m
+  memory: 512Mi
+  replicas: 1
+env:
+  - name: NODE_ENV
+    value: production
+
+dependencies:
+  - type: POSTGRES
+    name: POSTGRES
+
+domain: my-app.deployaja.id
 
