@@ -39,8 +39,8 @@ export async function PUT({ params, request, locals }) {
         return json({ error: 'Not found' }, { status: 404 });
     }
 
-    const isOwner = map.ownerId === locals.user.id;
-    const isCollaborator = map.collaborators.some(c => c.id === locals.user.id);
+    const isOwner = locals.user && map.ownerId === locals.user.id;
+    const isCollaborator = locals.user && map.collaborators.some(c => c.id === locals.user.id);
     const isEditable = map.isEditable;
 
     if (!isOwner && !isCollaborator && !isEditable) {
@@ -55,6 +55,11 @@ export async function PUT({ params, request, locals }) {
             isPublic: isPublic !== undefined ? isPublic : undefined,
         },
     });
+
+    // Notify connected clients via WebSocket
+    if (global.io) {
+        global.io.to(id).emit('map-updated');
+    }
 
     return json({ map: updatedMap });
 }

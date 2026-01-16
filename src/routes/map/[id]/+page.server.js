@@ -23,6 +23,7 @@ export async function load({ params, locals }) {
     return {
         map,
         user,
-        isReadOnly: !isOwner && !isCollaborator
+        isOwner,
+        isReadOnly: !user || (!isOwner && !isCollaborator && !isEditable)
     };
 }

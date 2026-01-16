@@ -10,24 +10,33 @@
   export let mapId = null;
   export let canEdit = false;
   export let isEditable = false;
+  export let isOwner = false;
 
   let showShareModal = false;
   let saveStatus = "Saved"; // 'Saved', 'Unsaved changes', 'Saving...', 'Error'
   let hasUnsavedChanges = false;
   let isInitialLoad = true;
-  let saveInterval;
-  let lastChangeTime = Date.now();
-  const IDLE_THRESHOLD = 1000; // 1 second for faster sync
+  let saveTimeout;
+  const DEBOUNCE_DELAY = 1000; // 1 second delay
 
-  // React to store changes to detect unsaved work
+  // React to store changes to auto-save with debounce
   $: {
     $mindMap; // Dependency registration
     if (isInitialLoad) {
       isInitialLoad = false;
     } else {
-      hasUnsavedChanges = true;
-      saveStatus = "Unsaved changes";
-      lastChangeTime = Date.now();
+      if (!$isReadOnly) {
+        hasUnsavedChanges = true;
+        saveStatus = "Unsaved changes...";
+
+        if (saveTimeout) clearTimeout(saveTimeout);
+
+        if (mapId) {
+          saveTimeout = setTimeout(() => {
+            handleSave();
+          }, DEBOUNCE_DELAY);
+        }
+      }
     }
   }
 
@@ -38,6 +47,7 @@
       const res = await fetch(`/api/map/${mapId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        // Use current store value at time of save execution
         body: JSON.stringify({ content: $mindMap }),
       });
       if (res.ok) {
@@ -45,12 +55,12 @@
         saveStatus = "Saved";
         toasts.add("Map saved successfully", "success");
       } else {
-        saveStatus = "Your progress not saved, may network issue";
+        saveStatus = "Not saved (Server Error)";
         toasts.add("Failed to save map", "error");
       }
     } catch (e) {
       console.error(e);
-      saveStatus = "Your progress not saved, may network issue";
+      saveStatus = "Not saved (Network Error)";
       toasts.add("Network error: Failed to save map", "error");
     }
   }
@@ -97,21 +107,11 @@
       );
     }
 
-    // Auto-save Interval
-    // Check every 1 second if we have reached the idle threshold
-    saveInterval = setInterval(() => {
-      if (hasUnsavedChanges && mapId) {
-        const timeSinceLastChange = Date.now() - lastChangeTime;
-        // Only save if strictly idle for > threshold
-        if (timeSinceLastChange >= IDLE_THRESHOLD) {
-          handleSave();
-        }
-      }
-    }, 1000);
+    // Auto-save is now handled by reactive statement with debounce
   });
 
   onDestroy(() => {
-    if (saveInterval) clearInterval(saveInterval);
+    if (saveTimeout) clearTimeout(saveTimeout);
   });
 
   function toggleTheme() {
@@ -150,14 +150,16 @@
     showShareModal = true;
   }
 
+  import { page } from "$app/stores";
   import Logo from "./Logo.svelte";
 </script>
 
 <ShareModal
   isOpen={showShareModal}
-  url={typeof window !== "undefined" ? window.location.href : ""}
+  url={$page.url.href}
   {mapId}
   {isEditable}
+  {user}
   on:close={() => (showShareModal = false)}
 />
 
@@ -211,11 +213,13 @@
 
       <!-- Manual Save Button REMOVED -->
 
-      <button
-        on:click={openShare}
-        class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 hover:opacity-80 transition-all font-medium text-sm cursor-pointer"
-        >Share</button
-      >
+      {#if isOwner}
+        <button
+          on:click={openShare}
+          class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 hover:opacity-80 transition-all font-medium text-sm cursor-pointer"
+          >Share</button
+        >
+      {/if}
       <button
         on:click={downloadJSON}
         class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 hover:opacity-80 transition-all font-medium text-sm cursor-pointer"

@@ -20,7 +20,7 @@ export const verifyGoogleToken = async (token) => {
 };
 
 export const signSession = (user) => {
-    return jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, {
+    return jwt.sign({ id: user.id, email: user.email, name: user.name, image: user.image }, JWT_SECRET, {
         expiresIn: '7d',
     });
 };

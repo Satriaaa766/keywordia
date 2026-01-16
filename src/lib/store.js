@@ -12,6 +12,8 @@ export const focusedNodeId = writable(null); // Track node to auto-focus
 
 // Theme based on OS preference
 export const theme = writable('light');
+export const currentUser = writable(null);
+export const mapOwnerId = writable(null);
 if (typeof window !== 'undefined') {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const updateTheme = (e) => {
@@ -97,7 +99,17 @@ export const updateNodeText = (id, text) => {
 
 export const addChild = (parentId) => {
     const id = crypto.randomUUID();
-    const newChild = { id, text: 'New Node', children: [] };
+    const user = get(currentUser);
+    const newChild = {
+        id,
+        text: 'New Node',
+        children: [],
+        createdBy: user ? {
+            id: user.id,
+            image: user.image,
+            name: user.name
+        } : null
+    };
     mindMap.update(tree => addChildRecursive(tree, parentId, newChild));
     focusedNodeId.set(id); // Set focus to the new node
 };
@@ -110,7 +122,17 @@ export const deleteNode = (id) => {
 export const addSibling = (siblingId) => {
     if (siblingId === 'root') return; // Root has no siblings
     const id = crypto.randomUUID();
-    const newSibling = { id, text: 'New Node', children: [] };
+    const user = get(currentUser);
+    const newSibling = {
+        id,
+        text: 'New Node',
+        children: [],
+        createdBy: user ? {
+            id: user.id,
+            image: user.image,
+            name: user.name
+        } : null
+    };
     mindMap.update(tree => addSiblingRecursive(tree, siblingId, newSibling));
     focusedNodeId.set(id);
 };

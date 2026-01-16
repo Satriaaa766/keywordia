@@ -7,6 +7,7 @@
     focusedNodeId,
     deleteNode,
     addSibling,
+    mapOwnerId,
   } from "./store";
   import { onMount } from "svelte";
 
@@ -19,7 +20,15 @@
 
   // Auto-focus logic
   $: if ($focusedNodeId === node.id && element) {
+    if (node.text === "New Node" || (isRoot && node.text === "Central Topic")) {
+      updateNodeText(node.id, "");
+    }
     element.focus();
+  }
+
+  // Manual text sync to prevent cursor jumping during edits
+  $: if (element && node.text !== element.textContent) {
+    element.textContent = node.text;
   }
 
   function handleInput(e) {
@@ -30,6 +39,7 @@
     const text = e.target.textContent.trim();
     if (text === "New Node" || (isRoot && text === "Central Topic")) {
       e.target.textContent = "";
+      updateNodeText(node.id, ""); // Sync store to prevent reactive revert
     }
     if ($focusedNodeId === node.id) {
       focusedNodeId.set(null);
@@ -93,24 +103,43 @@
   function toggleExpand() {
     expanded = !expanded;
   }
+  function getColor(id) {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const h = Math.abs(hash % 360);
+    return `hsl(${h}, 70%, 85%)`; // Pastel color
+  }
+
+  $: collabColor =
+    node.createdBy && node.createdBy.id !== $mapOwnerId
+      ? getColor(node.createdBy.id)
+      : null;
 </script>
 
 <div
   class="flex {$layout === 'top-down' ? 'flex-col' : 'flex-row'} items-center"
 >
   <div
-    class="flex items-center gap-2 p-2 rounded-lg transition-all duration-300 z-10
+    class="flex items-center gap-2 p-2 rounded-lg transition-all duration-300 z-10 relative
     {$isReadOnly ? '' : 'hover:scale-105'}
     {isRoot
       ? 'bg-blue-600 text-white text-xl font-bold shadow-lg'
-      : 'bg-white dark:bg-gray-800 dark:text-gray-200 shadow border border-gray-200 dark:border-gray-700'}
+      : collabColor
+        ? 'text-gray-900 border border-gray-300 shadow'
+        : 'bg-white dark:bg-gray-800 dark:text-gray-200 shadow border border-gray-200 dark:border-gray-700'}
   "
+    style={collabColor ? `background-color: ${collabColor};` : ""}
+    title={node.createdBy && node.createdBy.id !== $mapOwnerId
+      ? `Created by ${node.createdBy.name}`
+      : ""}
   >
     <!-- Expand/Collapse for parents -->
     {#if node.children && node.children.length > 0}
       <button
         on:click={toggleExpand}
-        class="text-xs mr-1 opacity-50 hover:opacity-100"
+        class="text-xs mr-1 opacity-50 hover:opacity-100 cursor-pointer"
       >
         {expanded ? "−" : "+"}
       </button>
@@ -123,17 +152,17 @@
       on:keydown={handleKeydown}
       on:focus={handleFocus}
       on:blur={handleBlur}
-      class="outline-none min-w-[50px] text-center px-2 py-1 cursor-text empty:before:content-[attr(placeholder)] focus:before:content-none"
+      class="outline-none min-w-[50px] {isRoot
+        ? 'text-center'
+        : 'text-left'} px-2 py-1 cursor-text empty:before:content-[attr(placeholder)] focus:before:content-none"
       placeholder="Node"
-    >
-      {node.text}
-    </div>
+    ></div>
 
     <!-- Add Child Button -->
     {#if !$isReadOnly}
       <button
         on:click={handleAdd}
-        class="ml-2 w-6 h-6 flex items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors shadow-sm text-sm"
+        class="ml-2 w-6 h-6 flex items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors shadow-sm text-sm cursor-pointer"
         title="Add Child"
       >
         +

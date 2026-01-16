@@ -11,6 +11,7 @@ model User {
   id        String    @id @default(uuid())
   email     String    @unique
   name      String?
+  image     String?   // Google Profile Picture
   googleId  String    @unique
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

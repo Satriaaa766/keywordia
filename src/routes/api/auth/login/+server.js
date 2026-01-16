@@ -21,6 +21,15 @@ export async function POST({ request, cookies }) {
         where: { googleId },
     });
 
+    if (user && picture && user.image !== picture) {
+        try {
+            user = await prisma.user.update({
+                where: { id: user.id },
+                data: { image: picture }
+            });
+        } catch (e) { }
+    }
+
     if (!user) {
         try {
             user = await prisma.user.create({
@@ -28,6 +37,7 @@ export async function POST({ request, cookies }) {
                     googleId,
                     email,
                     name: name || 'User',
+                    image: picture,
                 },
             });
         } catch (e) {
