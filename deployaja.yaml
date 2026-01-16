@@ -3,7 +3,7 @@ version: 1.0.0
 description: My awesome application
 
 container:
-  image: ghcr.io/satriaaa766/keywordia:latest
+  image: keywordia:latest
   port: 3000
   imagePullSecrets:
     - name: ghcr-secret
