@@ -2,7 +2,7 @@ name: keywordia
 version: 1.0.0
 description: My awesome application
 container:
-  image: trigger466/keywordia:latest
+  image: keywordia:latest
   port: 3000
 resources:
   cpu: 500m
