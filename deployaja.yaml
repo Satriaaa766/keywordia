@@ -5,9 +5,9 @@ description: My awesome application
 container:
   image: ghcr.io/trigger466/keywordia:latest
   port: 3000
-  resources:
-    cpu: 500m
-    memory: 512Mi
+resources:
+  cpu: 500m
+  memory: 512Mi
   replicas: 1 
   imagePullSecrets:
     - name: ghcr-secret
