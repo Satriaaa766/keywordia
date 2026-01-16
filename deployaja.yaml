@@ -1,14 +1,13 @@
 name: keywordia
 version: 1.0.0
 description: My awesome application
-
 container:
-  image: ghcr.io/trigger466/keywordia:latest
+  image: ghcr.io/satriaaa766/keywordia:${IMAGE_TAG}
   port: 3000
 resources:
   cpu: 500m
   memory: 512Mi
-  replicas: 1 
+  replicas: 1
 env:
   - name: NODE_ENV
     value: production
