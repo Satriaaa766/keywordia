@@ -1,8 +1,8 @@
-name: my-app
+name: keywordia
 version: 1.0.0
 description: My awesome application
 container:
-  image: my-app:latest
+  image: keywordia:latest
   port: 3000
 resources:
   cpu: 500m
@@ -14,7 +14,8 @@ env:
 
 dependencies:
   - type: POSTGRES
-    name: POSTGRES
+    name: postgres
+    version: "15"
 
-domain: my-app.deployaja.id
+domain: keywordia.deployaja.id
 
