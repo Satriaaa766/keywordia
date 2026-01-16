@@ -9,9 +9,6 @@ resources:
   cpu: 500m
   memory: 512Mi
   replicas: 1 
-  imagePullSecrets:
-    - name: ghcr-secret
-
 env:
   - name: NODE_ENV
     value: production
