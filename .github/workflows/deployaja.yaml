@@ -2,9 +2,9 @@ name: CI/CD Keywordia DeployAja
 
 on:
   push:
-    branches: [ "master" ]  # CI jalan di main
+    branches: [ "master" ]
   pull_request:
-    branches: [ "master" ]  # PR review
+    branches: [ "master" ]
 
 env:
   REGISTRY: ghcr.io/satriaaa766/keywordia
@@ -40,4 +40,4 @@ jobs:
           api-token: ${{ secrets.DEPLOYAJA_TOKEN }}
           additional-args: |
             --set container.image=${{ env.REGISTRY }}:${{ github.sha }}
-            --set replicas=1
+            --set resources.replicas=1
