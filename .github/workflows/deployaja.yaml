@@ -55,6 +55,5 @@ jobs:
           command: deploy
           api-token: ${{ secrets.DEPLOYAJA_TOKEN }}
           additional-args: |
-            --set container.image=${{ env.REGISTRY }}:${{ github.sha }}
-            --set replicas=1
-            --set resources.replicas=1
+            --set container.image=ghcr.io/satriaaa766/keywordia:${{ github.sha }}
+            --set spec.replicas=1
